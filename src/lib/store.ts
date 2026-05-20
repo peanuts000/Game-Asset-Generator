@@ -33,7 +33,7 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
-      apiKey: 'sk-ac038a1182254bb6869aa80db10ae88d',
+      apiKey: '',
       baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
       model: 'wanx2.1-t2i-turbo', // 阿里云百炼的通义万相模型
       setApiConfig: (apiKey, baseUrl, model) => set({ apiKey, baseUrl, model }),
