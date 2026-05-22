@@ -7,7 +7,8 @@ export default function Sidebar() {
     apiKey, baseUrl, model, styleConfig, 
     setApiConfig, setStyleConfig,
     prompt, setPrompt,
-    isGenerating, setIsGenerating, setGeneratedImageUrl
+    isGenerating, setIsGenerating, setGeneratedImageUrl,
+    addHistoryItem, setCurrentHistoryId
   } = useAppStore();
 
   const handleGenerate = async () => {
@@ -27,7 +28,7 @@ export default function Sidebar() {
       // 1. Build the advanced industrial prompt
       let finalPrompt = prompt;
       if (styleConfig.styleType === 'pixel') {
-        finalPrompt += `, strict pixel art, 8-bit retro style, flat colors, no anti-aliasing, sharp hard edges.`;
+        finalPrompt += `, strict pixel art, 8-bit retro style, flat colors, no anti-aliasing, NO outlines, NO black borders, sharp hard edges.`;
       } else {
         finalPrompt += `, 2D game asset, flat design, orthographic, NO drop shadows, NO cast shadows, shadowless, NO outlines, NO black borders.`;
       }
@@ -75,7 +76,19 @@ export default function Sidebar() {
 
       // Zhipu/OpenAI usually returns data[0].url
       if (data.data && data.data.length > 0 && data.data[0].url) {
-        setGeneratedImageUrl(data.data[0].url);
+        const url = data.data[0].url;
+        setGeneratedImageUrl(url);
+        
+        // Add to history
+        const id = Date.now().toString();
+        addHistoryItem({
+          id,
+          originalUrl: url,
+          processedUrl: url, // Initially, same as original
+          prompt: finalPrompt,
+          timestamp: Date.now()
+        });
+        setCurrentHistoryId(id);
       } else {
         throw new Error('No image URL returned from API');
       }

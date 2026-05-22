@@ -11,6 +11,15 @@ export interface StyleConfig {
   backgroundColor: string; // Background color hex code, e.g. '#00FF00'
 }
 
+export interface HistoryItem {
+  id: string;
+  originalUrl: string;
+  processedUrl: string;
+  initialProcessedUrl?: string; // Reset point state
+  prompt: string;
+  timestamp: number;
+}
+
 interface AppState {
   apiKey: string;
   baseUrl: string;
@@ -28,6 +37,14 @@ interface AppState {
   
   generatedImageUrl: string | null;
   setGeneratedImageUrl: (url: string | null) => void;
+
+  history: HistoryItem[];
+  addHistoryItem: (item: HistoryItem) => void;
+  updateHistoryProcessedUrl: (id: string, newProcessedUrl: string) => void;
+  updateHistoryInitialUrl: (id: string, url: string) => void;
+  removeHistoryItem: (id: string) => void;
+  currentHistoryId: string | null;
+  setCurrentHistoryId: (id: string | null) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -56,6 +73,25 @@ export const useAppStore = create<AppState>()(
       
       generatedImageUrl: null,
       setGeneratedImageUrl: (url) => set({ generatedImageUrl: url }),
+
+      history: [],
+      addHistoryItem: (item) => set((state) => ({ history: [item, ...state.history] })),
+      updateHistoryProcessedUrl: (id, newProcessedUrl) => set((state) => ({
+        history: state.history.map(item => item.id === id ? { ...item, processedUrl: newProcessedUrl } : item)
+      })),
+      updateHistoryInitialUrl: (id, url) => set((state) => ({
+        history: state.history.map(item => item.id === id ? { ...item, initialProcessedUrl: url } : item)
+      })),
+      removeHistoryItem: (id) => set((state) => {
+        const newHistory = state.history.filter(item => item.id !== id);
+        return {
+          history: newHistory,
+          // If the deleted item was currently selected, select the first available or null
+          currentHistoryId: state.currentHistoryId === id ? (newHistory.length > 0 ? newHistory[0].id : null) : state.currentHistoryId
+        };
+      }),
+      currentHistoryId: null,
+      setCurrentHistoryId: (id) => set({ currentHistoryId: id }),
     }),
     {
       name: 'game-asset-generator-storage',
